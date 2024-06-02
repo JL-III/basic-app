@@ -1,4 +1,6 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use database::{get_database_data, initialize_database, seed_database};
+#[cfg(feature = "ui")]
 use ratatui::{
     prelude::*,
     symbols::border,
@@ -10,6 +12,7 @@ use color_eyre::{
     Result,
 };
 
+mod database;
 mod errors;
 mod tui;
 
@@ -31,12 +34,13 @@ impl App {
     /// runs the application's main loop until the user quits
     pub fn run(&mut self, terminal: &mut tui::Tui) -> Result<()> {
         while !self.exit {
+            #[cfg(feature = "ui")]
             terminal.draw(|frame| self.render_frame(frame))?;
             self.handle_events().wrap_err("handle events failed")?;
         }
         Ok(())
     }
-
+    #[cfg(feature = "ui")]
     fn render_frame(&self, frame: &mut Frame) {
         frame.render_widget(self, frame.size());
     }
@@ -53,6 +57,15 @@ impl App {
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
+            KeyCode::Char('i') => {
+                initialize_database()?;
+            }
+            KeyCode::Char('g') => {
+                get_database_data()?;
+            }
+            KeyCode::Char('s') => {
+                seed_database()?;
+            }
             KeyCode::Left => self.decrement_counter()?,
             KeyCode::Right => self.increment_counter()?,
             _ => {}
@@ -78,6 +91,7 @@ impl App {
     }
 }
 
+#[cfg(feature = "ui")]
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Title::from(" Counter App Tutorial ".bold());
@@ -136,10 +150,12 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "ui")]
     fn render() {
         let app = App::default();
         let mut buf = Buffer::empty(Rect::new(0, 0, 50, 4));
 
+        #[cfg(feature = "ui")]
         app.render(buf.area, &mut buf);
 
         let mut expected = Buffer::with_lines(vec![
