@@ -1,14 +1,12 @@
 use app::App;
 
-use color_eyre::{
-    eyre::Ok,
-    Result,
-};
+use anyhow::Result;
 
 mod app;
+mod bill;
+mod database;
 mod errors;
 mod tui;
-mod database;
 
 fn main() -> Result<()> {
     errors::install_hooks()?;

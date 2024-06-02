@@ -1,5 +1,8 @@
+use anyhow::{anyhow, Result};
 use chrono::Utc;
-use rusqlite::{params, Connection, Result};
+use rusqlite::{params, Connection};
+
+use crate::bill::Bill;
 
 pub fn initialize_database() -> Result<()> {
     let connection = Connection::open("./data.db")?;
@@ -47,28 +50,52 @@ pub fn seed_database() -> Result<()> {
     Ok(())
 }
 
-pub fn get_database_data() -> Result<()> {
+// pub fn get_database_data() -> Result<()> {
+//     let connection = Connection::open("./data.db")?;
+//     let mut stmt = connection.prepare(
+//         "SELECT id, date, description, notes, amount, timestamp, allocated, sent, paid FROM bills",
+//     )?;
+//     let bills_iter = stmt.query_map([], |row| {
+//         Ok((
+//             row.get::<_, i32>(0)?,
+//             row.get::<_, String>(1)?,
+//             row.get::<_, String>(2)?,
+//             row.get::<_, String>(3)?,
+//             row.get::<_, f64>(4)?,
+//             row.get::<_, String>(5)?,
+//             row.get::<_, i32>(6)? != 0,
+//             row.get::<_, i32>(7)? != 0,
+//             row.get::<_, i32>(8)? != 0,
+//         ))
+//     })?;
+//     for bill in bills_iter {
+//         println!("{:?}", bill?);
+//     }
+//     Ok(())
+// }
+
+pub fn get_database_entry(id: i32) -> Result<Bill> {
     let connection = Connection::open("./data.db")?;
     let mut stmt = connection.prepare(
-        "SELECT id, date, description, notes, amount, timestamp, allocated, sent, paid FROM bills",
+        "SELECT id, date, description, notes, amount, timestamp, allocated, sent, paid FROM bills WHERE id = ?1",
     )?;
-    let bills_iter = stmt.query_map([], |row| {
-        Ok((
-            row.get::<_, i32>(0)?,
-            row.get::<_, String>(1)?,
-            row.get::<_, String>(2)?,
-            row.get::<_, String>(3)?,
-            row.get::<_, f64>(4)?,
-            row.get::<_, String>(5)?,
-            row.get::<_, i32>(6)? != 0,
-            row.get::<_, i32>(7)? != 0,
-            row.get::<_, i32>(8)? != 0,
-        ))
-    })?;
-    for bill in bills_iter {
-        println!("{:?}", bill?);
+    let mut rows = stmt.query(params![id])?;
+    if let Some(row) = rows.next()? {
+        let bill = Bill {
+            id: row.get(0)?,
+            date: row.get(1)?,
+            description: row.get(2)?,
+            notes: row.get(3)?,
+            amount: row.get(4)?,
+            timestamp: row.get(5)?,
+            allocated: row.get::<_, i32>(6)? != 0,
+            sent: row.get::<_, i32>(7)? != 0,
+            paid: row.get::<_, i32>(8)? != 0,
+        };
+        Ok(bill)
+    } else {
+        Err(anyhow!("No bill found with given id"))
     }
-    Ok(())
 }
 
 fn add_bill(
