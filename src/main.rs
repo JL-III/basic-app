@@ -39,14 +39,20 @@ impl App {
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
         match key_event.code {
-            KeyCode::Char('q') => self.exit(),
+            KeyCode::Char('q') => {
+                println!("pressed 'q'");
+                self.exit()
+            },
             KeyCode::Char('i') => {
+                println!("pressed 'i'");
                 initialize_database()?;
             }
             KeyCode::Char('g') => {
+                println!("pressed 'g'");
                 get_database_data()?;
             }
             KeyCode::Char('s') => {
+                println!("pressed 's'");
                 seed_database()?;
             }
             KeyCode::Left => self.decrement_counter()?,
