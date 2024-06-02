@@ -7,16 +7,21 @@ use color_eyre::{
 };
 
 mod database;
-
-fn main() -> Result<()> {
-    App::default().run()?;
-    Ok(())
-}
+mod errors;
+mod tui;
 
 #[derive(Debug, Default)]
 pub struct App {
     counter: u8,
     exit: bool,
+}
+
+fn main() -> Result<()> {
+    errors::install_hooks()?;
+    tui::init()?;
+    App::default().run()?;
+    tui::restore()?;
+    Ok(())
 }
 
 impl App {
@@ -42,13 +47,13 @@ impl App {
             KeyCode::Char('q') => {
                 println!("pressed 'q'");
                 self.exit()
-            },
+            }
             KeyCode::Char('i') => {
                 println!("pressed 'i'");
                 initialize_database()?;
             }
             KeyCode::Char('g') => {
-                println!("pressed 'g'");
+                print!("pressed 'g'");
                 get_database_data()?;
             }
             KeyCode::Char('s') => {
