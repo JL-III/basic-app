@@ -48,6 +48,7 @@ pub fn seed_database() -> Result<()> {
 }
 
 pub fn get_database_data() -> Result<()> {
+    print!("fetching database data");
     let connection = Connection::open("./data.db")?;
     let mut stmt = connection.prepare(
         "SELECT id, date, description, notes, amount, timestamp, allocated, sent, paid FROM bills",
@@ -65,7 +66,6 @@ pub fn get_database_data() -> Result<()> {
             row.get::<_, i32>(8)? != 0,
         ))
     })?;
-
     for bill in bills_iter {
         print!("{:?}", bill?);
     }
